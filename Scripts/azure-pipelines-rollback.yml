@@ -1,0 +1,175 @@
+trigger: none
+
+parameters:
+- name: releaseVersion
+  displayName: 'Release_Version'
+  type: string
+
+- name: environment
+  displayName: 'Environment'
+  type: string
+  default: 'dev'
+  values: 
+    - dev
+    - qa
+    - prod
+
+- name: ApplicationFilter
+  displayName: 'Application Filter (Optional)'
+  type: string
+  default: 'all'
+
+- name: FeatureFilter
+  displayName: 'Features to Roll Back (comma-separated, REQUIRED)'
+  type: string
+  # Example: "Config" or "Config,DataMigration,Reporting"
+
+- name: Excluded_Clients
+  displayName: 'Excluded Clients (comma-separated, optional)'
+  type: string
+  default: ''
+
+- name: dryRun
+  displayName: 'Dry Run (Preview rollback plan only)'
+  type: boolean
+  default: true
+
+variables:
+  - name: 'ChecklistPath'
+    value: '$(System.DefaultWorkingDirectory)/Environments/${{parameters.environment}}/${{parameters.environment}}.csv'
+  - name: 'ConfigFilePath'
+    value: '$(System.DefaultWorkingDirectory)/Environments/${{parameters.environment}}/${{parameters.environment}}-config.json'
+  - name: 'ArtifactsDirectory'
+    value: '$(System.ArtifactsDirectory)'
+
+  # Pool selection based on environment
+  - name: agentPoolName
+    ${{ if eq(parameters.environment, 'dev') }}:
+      value: 'Your-Self-Hosted-Windows-Pool'
+    ${{ if eq(parameters.environment, 'qa') }}:
+      value: 'Your-Self-Hosted-Windows-Pool'
+    ${{ if eq(parameters.environment, 'prod') }}:
+      value: 'Your-Self-Hosted-Windows-Pool'
+
+stages:
+- stage: PreviewRollback
+  displayName: 'Preview Rollback Plan'
+  jobs:
+  - job: GenerateRollbackPlan
+    displayName: 'Generate Rollback Plan (Dry Run)'
+    pool:
+      name: $(agentPoolName)
+    steps:
+    - checkout: self
+
+    - task: PowerShell@2
+      displayName: 'Generate Rollback Plan'
+      inputs:
+        targetType: 'filePath'
+        filePath: 'Scripts/Rollback-Feature.ps1'
+        arguments: >
+          -ChecklistPath "$(ChecklistPath)"
+          -ConfigFilePath "$(ConfigFilePath)"
+          -Environment "${{parameters.environment}}"
+          -ReleaseVersion "${{parameters.releaseVersion}}"
+          -FeatureFilter "${{parameters.FeatureFilter}}"
+          -ApplicationFilter "${{parameters.ApplicationFilter}}"
+          -ArtifactsDirectory "$(ArtifactsDirectory)"
+          -ExcludedClients "${{parameters.Excluded_Clients}}"
+          -DryRun "true"
+        pwsh: false
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+      name: 'previewStep'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Rollback Plan'
+      condition: succeeded()
+      inputs:
+        targetPath: '$(System.ArtifactsDirectory)'
+        artifactName: 'RollbackPlan'
+        publishLocation: 'pipeline'
+
+- stage: ExecuteRollback
+  displayName: 'Execute Feature Rollback'
+  dependsOn: PreviewRollback
+  condition: |
+    and(
+      succeeded('PreviewRollback'),
+      eq('${{parameters.dryRun}}', false)
+    )
+
+  jobs:
+  - job: ManualApproval
+    displayName: 'Approve Rollback'
+    pool:
+      name: $(agentPoolName)
+    steps:
+    - checkout: self
+    - task: ManualValidation@1
+      displayName: 'Approve Rollback Execution'
+      inputs:
+        notifyUsers: 'me@myemail.com'
+        instructions: |
+          Rolling back feature(s): ${{parameters.FeatureFilter}}
+          Environment: ${{parameters.environment}}
+          Release Version: ${{parameters.releaseVersion}}
+
+          Review the rollback plan artifact before approving.
+          Click 'Resume' to proceed or 'Reject' to cancel.
+
+  - deployment: RollbackDeployment
+    displayName: 'Execute Rollback Scripts'
+    dependsOn: ManualApproval
+    environment: ${{parameters.environment}}
+    pool:
+      name: $(agentPoolName)
+    variables:
+    - group: 'mssql-vg-dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: PowerShell@2
+            displayName: 'Execute Feature Rollback'
+            env:
+              # Map secret variables — must match ConnectionStringVar in your config
+              CONN_STR_CLIENTA: $(CONN_STR_CLIENTA)
+              CONN_STR_CLIENTB: $(CONN_STR_CLIENTB)
+            inputs:
+              targetType: 'filePath'
+              filePath: 'Scripts/Rollback-Feature.ps1'
+              arguments: >
+                -ChecklistPath "$(ChecklistPath)"
+                -ConfigFilePath "$(ConfigFilePath)"
+                -Environment "${{parameters.environment}}"
+                -ReleaseVersion "${{parameters.releaseVersion}}"
+                -FeatureFilter "${{parameters.FeatureFilter}}"
+                -ApplicationFilter "${{parameters.ApplicationFilter}}"
+                -ArtifactsDirectory "$(ArtifactsDirectory)"
+                -ExcludedClients "${{parameters.Excluded_Clients}}"
+                -DryRun "false"
+              pwsh: false
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+            name: 'rollbackStep'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Rollback Results'
+            condition: always()
+            inputs:
+              PathtoPublish: '$(System.ArtifactsDirectory)'
+              ArtifactName: 'RollbackResults'
+
+          - task: PowerShell@2
+            displayName: 'Fail Pipeline If Rollback Failed'
+            condition: always()
+            inputs:
+              targetType: 'inline'
+              script: |
+                $rollbackSuccess = "$(RollbackSuccess)"
+
+                if ($rollbackSuccess -eq 'False') {
+                  Write-Error "Rollback contains failures. Check rollback artifacts."
+                  Exit 1
+                }

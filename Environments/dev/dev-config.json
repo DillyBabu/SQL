@@ -1,0 +1,115 @@
+[
+    {
+        "clientName": "Client001",
+        "applicationName": "application1",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "dev-server1",
+                "clientId": "C001",
+                "connectionStringVar": "dev-client001-connstr",
+                "databases": [
+                    "dev_Client1DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client002",
+        "applicationName": "application2",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "dev-server1",
+                "clientId": "C002",
+                "connectionStringVar": "dev-client002-connstr",
+                "databases": [
+                    "dev_Client2DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client003",
+        "applicationName": "application3",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "dev-server2",
+                "clientId": "C003",
+                "connectionStringVar": "dev-client003-connstr",
+                "databases": [
+                    "dev_Client3DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client004",
+        "applicationName": "application4",
+        "environment": "dev",
+        "servers": [
+            {
+                "serverName": "dev-server1",
+                "clientId": "C004",
+                "connectionStringVar": "dev-client004-connstr",
+                "databases": [
+                    "dev_Client4DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "WorkflowPrimaryServer",
+        "applicationName": "workflow",
+        "environment": "dev",
+        "servers": [
+            {
+                "serverName": "dev-server1",
+                "clientId": "C001",
+                "connectionStringVar": "dev-client001-connstr",
+                "databases": [
+                    "dev_Client1DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client002",
+        "applicationName": "application6",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "dev-server1",
+                "clientId": "C002",
+                "connectionStringVar": "dev-client002-connstr",
+                "databases": [
+                    "dev_Client2DB_003"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "WorkflowSecondaryServer",
+        "applicationName": "workflow",
+        "environment": "dev",
+        "servers": [
+            {
+                "serverName": "dev-server2",
+                "clientId": "C003",
+                "connectionStringVar": "dev-client003-connstr",
+                "databases": [
+                    "dev_Client3DB_001"
+                ]
+            },
+            {
+                "serverName": "dev-server2",
+                "clientId": "C004",
+                "connectionStringVar": "dev-client004-connstr",
+                "databases": [
+                    "dev_Client4DB_001"
+                ]
+            }
+        ]
+    }
+]

@@ -1,0 +1,6 @@
+Release_Version,Application_Name,Feature_Name,Feature_Order,Repo_Name,SQL_Path,Script_Type,Execute_Script,Environment,Client_Name,Script_order,Prerequisites,Rollback_Script_Path,Feature_Rollback_Order,Execution_Status,Pipeline_Run_ID,Executed_By,Execution_Date,Duration,Validation_Query,Expected_Result,Actual_Result,Rows_Affected,Comments,Error_Message
+1.0.0,Workflow,Auditing,1,Workflow,workflow.sql\1.0.0\001_student\Internal\Deployment\Primary\001_students.sql,DDL,Yes,dev,Client001,1,,,,,,,,,,,,,,
+1.0.0,Workflow,Auditing,1,Workflow,workflow.sql\1.0.0\001_student\Internal\Deployment\Primary\002_allclients.sql,DDL,Yes,dev,"WorkflowPrimaryServer,WorkflowSecondaryServer",2,workflow.sql\1.0.0\001_student\Internal\Deployment\Primary\001_students.sql,,,,,,,,,,,,,
+1.0.0,Workflow,Auditing,1,Workflow,workflow.sql\1.0.0\001_student\Internal\Deployment\Primary\003_sample.sql,DDL,Yes,dev,"WorkflowPrimaryServer,WorkflowSecondaryServer",3,workflow.sql\1.0.0\001_student\Internal\Deployment\Primary\002_allclients.sql,,,,,,,,,,,,,
+1.0.0,Workflow,Teacher,2,Workflow,workflow.sql\1.0.0\002_teacher\01_common.sql,DDL,Yes,dev,Client001,1,,,,,,,,,,,,,,
+1.0.0,Workflow,Teacher,2,Workflow,workflow.sql\1.0.0\002_teacher\02_allteachers.sql,DDL,Yes,dev,Client001,2,workflow.sql\1.0.0\002_teacher\01_common.sql,,,,,,,,,,,,,

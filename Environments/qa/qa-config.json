@@ -1,0 +1,115 @@
+[
+    {
+        "clientName": "Client001",
+        "applicationName": "application1",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "qa-server1",
+                "clientId": "C001",
+                "connectionStringVar": "qa-client001-connstr",
+                "databases": [
+                    "QA_Client1DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client002",
+        "applicationName": "application2",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "qa-server1",
+                "clientId": "C002",
+                "connectionStringVar": "qa-client002-connstr",
+                "databases": [
+                    "QA_Client2DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client003",
+        "applicationName": "application3",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "qa-server2",
+                "clientId": "C003",
+                "connectionStringVar": "qa-client003-connstr",
+                "databases": [
+                    "QA_Client3DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client004",
+        "applicationName": "application4",
+        "environment": "qa",
+        "servers": [
+            {
+                "serverName": "qa-server1",
+                "clientId": "C004",
+                "connectionStringVar": "qa-client004-connstr",
+                "databases": [
+                    "QA_Client4DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "WorkflowPrimaryServer",
+        "applicationName": "workflow",
+        "environment": "qa",
+        "servers": [
+            {
+                "serverName": "qa-server1",
+                "clientId": "C001",
+                "connectionStringVar": "qa-client001-connstr",
+                "databases": [
+                    "QA_Client1DB_001"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "Client002",
+        "applicationName": "application6",
+        "environment": "",
+        "servers": [
+            {
+                "serverName": "qa-server1",
+                "clientId": "C002",
+                "connectionStringVar": "qa-client002-connstr",
+                "databases": [
+                    "QA_Client2DB_003"
+                ]
+            }
+        ]
+    },
+    {
+        "clientName": "WorkflowSecondaryServer",
+        "applicationName": "workflow",
+        "environment": "qa",
+        "servers": [
+            {
+                "serverName": "qa-server2",
+                "clientId": "C003",
+                "connectionStringVar": "qa-client003-connstr",
+                "databases": [
+                    "QA_Client3DB_001"
+                ]
+            },
+            {
+                "serverName": "qa-server2",
+                "clientId": "C004",
+                "connectionStringVar": "qa-client004-connstr",
+                "databases": [
+                    "QA_Client4DB_001"
+                ]
+            }
+        ]
+    }
+]
