@@ -9,6 +9,8 @@
 
 ## Summary
 
+For rows selected for deployment, the parser stops before exporting a plan if a named client is absent from the environment config or `SQL_Path` does not point to a file. `Prerequisites` and `Rollback_Script_Path` may be blank; when supplied, each must point to a file. Relative paths are checked from the pipeline working directory. Errors identify the checklist row (header is row 1) and column, including in dry runs.
+
 | # | Change | File(s) | Type |
 |---|---|---|---|
 | 1 | Each SQL script runs in a single transaction. If any batch fails, the whole script is rolled back | Deploy | Enhancement |

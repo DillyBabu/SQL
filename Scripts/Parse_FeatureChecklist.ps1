@@ -63,10 +63,6 @@ function Get-ClientConfiguration {
     # all of them are returned so the script is deployed to every database of the client
     $clientConfigs = @($ConfigData | Where-Object { $_.clientName -eq $ClientName })
 
-    if ($clientConfigs.Count -eq 0) {
-        Write-Warning "Client '$ClientName' not found in configuration"
-    }
-
     return $clientConfigs
 }
 
@@ -303,7 +299,7 @@ catch {
 # Read feature checklist
 Write-Host "Reading feature checklist from $ChecklistPath"
 try {
-    $Checklist = Import-Csv $ChecklistPath
+    $Checklist = @(Import-Csv $ChecklistPath)
     Write-Host "Total records in checklist: $($Checklist.Count)" -ForegroundColor Cyan
 }
 catch {
@@ -405,6 +401,19 @@ elseif ($exceptionList.Count -gt 0) {
 Write-StageHeader "Expanding Execution Plan by Client and Database"
 
 foreach ($script in $FilteredScripts) {
+    foreach ($field in 'SQL_Path', 'Prerequisites', 'Rollback_Script_Path') {
+        $path = $script.$field
+        if ([string]::IsNullOrWhiteSpace($path)) {
+            if ($field -ne 'SQL_Path') { continue }
+        }
+        elseif (Test-Path -LiteralPath $path -PathType Leaf) {
+            continue
+        }
+        $rowNumber = [array]::IndexOf($Checklist, $script) + 2
+        Write-Error "$ChecklistPath row $rowNumber, ${field}: expected an existing file, got '$path'."
+        exit 1
+    }
+
     $clientName = $script.Client_Name
 
     if ([string]::IsNullOrWhiteSpace($clientName)) {
@@ -420,20 +429,18 @@ foreach ($script in $FilteredScripts) {
     $seenTargets = @{}
 
     foreach ($currentClient in $clientNames) {
+        $clientConfigs = @(Get-ClientConfiguration -ConfigData $ConfigData -ClientName $currentClient -Environment $Environment)
+        if ($clientConfigs.Count -eq 0) {
+            $rowNumber = [array]::IndexOf($Checklist, $script) + 2
+            Write-Error "$ChecklistPath row $rowNumber, Client_Name: '$currentClient' not found in $ConfigFilePath."
+            exit 1
+        }
         $entryExcluded = $excludedList -contains $currentClient
 
         # Whole entry excluded and no exceptions to honour - skip without expanding
         if ($entryExcluded -and $exceptionList.Count -eq 0) {
             Write-Host "[EXCLUDED] Client '$currentClient' skipped for script '$($script.SQL_Path)' (in Excluded_Clients list)" -ForegroundColor Yellow
             $SkippedRows += New-SkippedRow -SqlPath $script.SQL_Path -ClientName $currentClient -Reason "Client excluded via Excluded_Clients parameter"
-            continue
-        }
-
-        $clientConfigs = @(Get-ClientConfiguration -ConfigData $ConfigData -ClientName $currentClient -Environment $Environment)
-
-        if ($clientConfigs.Count -eq 0) {
-            Write-Warning "Client '$currentClient' not found in configuration - skipping this client for script $($script.SQL_Path)"
-            $SkippedRows += New-SkippedRow -SqlPath $script.SQL_Path -ClientName $currentClient -Reason "Client not found in configuration"
             continue
         }
 
